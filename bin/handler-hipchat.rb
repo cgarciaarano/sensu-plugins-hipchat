@@ -84,14 +84,19 @@ class HipChatNotif < Sensu::Handler
 
     begin
       Timeout.timeout(3) do
-        if @event['action'].eql?('resolve')
-          hipchatmsg[room].send(from, message, color: 'green', message_format: message_format)
-        else
-          hipchatmsg[room].send(from, message, color: @event['check']['status'] == 1 ? 'yellow' : 'red', notify: true, message_format: message_format)
+        if not room.kind_of?(Array)
+          room = [room]
         end
+        if @event['action'].eql?('resolve')
+          room.each { |x| hipchatmsg[x].send(from, message, color: 'green', message_format: message_format)}
+        else
+          room.each { |x| hipchatmsg[x].send(from, message, color: @event['check']['status'] == 1 ? 'yellow' : 'red', notify: true, message_format: message_format)}
+        end
+       
       end
     rescue Timeout::Error
       puts "hipchat -- timed out while attempting to message #{room}"
     end
   end
+
 end
